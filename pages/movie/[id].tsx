@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { fetchDetailsById, fetchSeasonEpisodes } from "../../lib/omdb";  // Import the new helper
-import Link from "next/link";
+import { fetchDetailsById, fetchSeasonEpisodes } from "../../lib/omdb"; // Import your functions
+import Swal from "sweetalert2"; // Assuming you're using SweetAlert2 for error handling
+import Link from "next/link"; // Link to navigate to episode details
 
 interface Episode {
   Title: string;
   Released: string;
   Plot: string;
   imdbID: string;
+  Poster: string; // Add Poster for each episode image
 }
 
 interface MovieDetails {
@@ -20,30 +22,37 @@ interface MovieDetails {
   Poster: string;
   imdbRating: string;
   imdbID: string;
-  totalSeasons: string;  // Add totalSeasons to track the number of seasons
+  totalSeasons: string;
 }
 
 const MovieDetailsPage = () => {
   const router = useRouter();
-  const { id } = router.query;  // Get the movie/show id from the URL
+  const { id } = router.query; // Get the movie/show id from the URL
   const [movieDetails, setMovieDetails] = useState<MovieDetails | null>(null);
   const [episodes, setEpisodes] = useState<Episode[]>([]);
-  const [selectedSeason, setSelectedSeason] = useState<number>(1);  // Default to season 1
+  const [selectedSeason, setSelectedSeason] = useState<number>(1); // Default to season 1
   const [loading, setLoading] = useState<boolean>(true);
 
   // Fetch movie/show details when the component mounts or id changes
   useEffect(() => {
-    if (!id) return;  // Make sure the id is available before making the API call
+    if (!id) return; // Make sure the id is available before making the API call
 
     const fetchDetails = async () => {
       setLoading(true);
       const data = await fetchDetailsById(id as string);
+      if (!data) {
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text: "Movie/Show not found.",
+        });
+        return;
+      }
       setMovieDetails(data);
       setLoading(false);
 
-      // Fetch episodes for season 1 by default
       if (data?.totalSeasons) {
-        fetchEpisodes(id as string, 1);  // Default to season 1
+        fetchEpisodes(id as string, 1); // Fetch episodes for season 1 by default
       }
     };
 
@@ -61,7 +70,7 @@ const MovieDetailsPage = () => {
   // Handle season change
   const handleSeasonChange = (season: number) => {
     setSelectedSeason(season);
-    fetchEpisodes(id as string, season);  // Fetch episodes for the selected season
+    fetchEpisodes(id as string, season); // Fetch episodes for the selected season
   };
 
   if (loading) {
@@ -118,13 +127,19 @@ const MovieDetailsPage = () => {
         ) : (
           episodes.map((episode) => (
             <div key={episode.imdbID} className="episode-card">
-              <h3>{episode.Title}</h3>
-              <p>{episode.Released}</p>
-              <p>{episode.Plot}</p>
-              <Link href={`/movie/${id}/episode/${episode.imdbID}`}>
-                {/* Removed the <a> tag. Link component now automatically handles it */}
-                View Details
-              </Link>
+              <img
+                src={episode.Poster !== "N/A" ? episode.Poster : "/placeholder.jpg"}
+                alt={episode.Title}
+                className="episode-poster"
+              />
+              <div className="episode-info">
+                <h3>{episode.Title}</h3>
+                <p>{episode.Released}</p>
+                <p>{episode.Plot}</p>
+                <Link href={`/movie/${id}/episode/${episode.imdbID}`}>
+                  View Details
+                </Link>
+              </div>
             </div>
           ))
         )}

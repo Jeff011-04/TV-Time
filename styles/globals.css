@@ -221,11 +221,122 @@ p {
   animation: fadeIn 1s forwards;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+.movie-details-container {
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+.movie-title {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+/* Flexbox layout for movie details */
+.movie-details {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.movie-poster {
+  width: 200px;
+  height: 300px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.movie-info {
+  flex: 1;
+}
+
+/* Styling for section titles */
+h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+/* Button for season selection */
+button {
+  padding: 8px 12px;
+  margin: 5px;
+  font-size: 1rem;
+  border: 2px solid #007bff;
+  border-radius: 4px;
+  background-color: transparent;
+  color: #007bff;
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+/* Hover effect for season selection button */
+button:hover {
+  background-color: #007bff;
+  color: white;
+}
+
+/* Active season button style */
+button.active {
+  background-color: #007bff;
+  color: white;
+}
+
+/* Episode card container */
+.episode-card {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  gap: 20px;
+}
+
+.episode-poster {
+  width: 120px;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.episode-info {
+  flex: 1;
+}
+
+.episode-info h3 {
+  margin-bottom: 10px;
+}
+
+.episode-info p {
+  margin-bottom: 5px;
+}
+
+.episode-info a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.episode-info a:hover {
+  text-decoration: underline;
+}
+
+/* Loading and error states */
+.loading-container,
+.error-container {
+  text-align: center;
+  padding: 20px;
+}
+
+/* Container for season selector */
+.season-selector {
+  margin-bottom: 20px;
+}
+
+.seasons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap; /* This ensures buttons will wrap onto the next line */
+  margin-bottom: 20px;
+}
+
+.seasons button {
+  flex-shrink: 0; /* Prevent buttons from shrinking */
+  margin: 5px;
 }
