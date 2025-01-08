@@ -1,75 +1,144 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { fetchDetailsById } from "../../../lib/omdb"; // Reuse the function to fetch episode details
+import { fetchDetailsById, fetchSeasonEpisodes } from "../../lib/omdb";  // Import your functions
+import Swal from "sweetalert2";  // Assuming you're using SweetAlert2 for error handling
+import Link from "next/link";
 
-// Type definitions for episode details
-interface EpisodeDetails {
+interface Episode {
   Title: string;
   Released: string;
   Plot: string;
   imdbID: string;
-  imdbRating: string;
 }
 
-const EpisodeDetailsPage = () => {
+interface MovieDetails {
+  Title: string;
+  Year: string;
+  Genre: string;
+  Director: string;
+  Actors: string;
+  Plot: string;
+  Poster: string;
+  imdbRating: string;
+  imdbID: string;
+  totalSeasons: string;
+}
+
+const MovieDetailsPage = () => {
   const router = useRouter();
-  const { id, episodeId } = router.query; // Extract 'id' (movie/show) and 'episodeId' (episode) from URL params
-  const [episodeDetails, setEpisodeDetails] = useState<EpisodeDetails | null>(null);
+  const { id } = router.query;  // Get the movie/show id from the URL
+  const [movieDetails, setMovieDetails] = useState<MovieDetails | null>(null);
+  const [episodes, setEpisodes] = useState<Episode[]>([]);
+  const [selectedSeason, setSelectedSeason] = useState<number>(1);  // Default to season 1
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null); // Error state to handle errors
+  const [dataType, setDataType] = useState<string>('movie'); // Store data type (movie or episode)
 
-  // Fetch episode details when the component mounts or the parameters change
+  // Fetch movie/show details when the component mounts or id changes
   useEffect(() => {
-    // Only proceed if the router is ready and we have both the 'id' and 'episodeId'
-    if (!router.isReady || !episodeId || !id) {
-      setLoading(false); // Stop loading if the parameters are not ready
-      return;
-    }
+    if (!id) return;  // Make sure the id is available before making the API call
 
-    const fetchEpisodeDetails = async () => {
-      try {
-        setLoading(true);
-        const data = await fetchDetailsById(episodeId as string); // Ensure 'episodeId' is treated as a string
-        if (data && data.Title) {
-          setEpisodeDetails(data); // Set episode details if valid
-          setError(null); // Reset error if data is fetched successfully
-        } else {
-          setError("Episode details not found.");
-        }
-      } catch (err) {
-        setError("Failed to fetch episode details.");
-      } finally {
-        setLoading(false); // Stop loading after the request completes
+    const fetchDetails = async () => {
+      setLoading(true);
+      const data = await fetchDetailsById(id as string);
+      if (!data) {
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text: "Movie/Show not found.",
+        });
+        return;
+      }
+      setMovieDetails(data);
+      setLoading(false);
+
+      if (data?.totalSeasons) {
+        fetchEpisodes(id as string, 1);  // Fetch episodes for season 1 by default
       }
     };
 
-    // Fetch episode details if the required parameters are available
-    fetchEpisodeDetails();
-  }, [episodeId, id, router.isReady]); // Re-run the effect when either 'episodeId' or 'id' or router readiness changes
+    fetchDetails();
+  }, [id]);
 
-  // Show loading state while fetching data
+  // Fetch episodes for a specific season
+  const fetchEpisodes = async (id: string, season: number) => {
+    setLoading(true);
+    const episodeData = await fetchSeasonEpisodes(id, season);
+    setEpisodes(episodeData);
+    setLoading(false);
+  };
+
+  // Handle season change
+  const handleSeasonChange = (season: number) => {
+    setSelectedSeason(season);
+    fetchEpisodes(id as string, season);  // Fetch episodes for the selected season
+  };
+
   if (loading) {
-    return <p>Loading episode details...</p>;
+    return <p>Loading movie/show details...</p>;
   }
 
-  // Show error message if fetching episode fails
-  if (error) {
-    return <p>{error}</p>;
-  }
-
-  // Handle case where episode details are not found
-  if (!episodeDetails) {
-    return <p>Episode not found.</p>;
+  if (!movieDetails) {
+    return <p>Movie/TV Show details not found.</p>;
   }
 
   return (
-    <div className="episode-details">
-      <h1>{episodeDetails.Title}</h1>
-      <p><strong>Released:</strong> {episodeDetails.Released}</p>
-      <p><strong>IMDb Rating:</strong> {episodeDetails.imdbRating}</p>
-      <p><strong>Plot:</strong> {episodeDetails.Plot}</p>
+    <div className="movie-details-container">
+      <h1 className="movie-title">
+        {movieDetails.Title} ({movieDetails.Year})
+      </h1>
+
+      <div className="movie-details">
+        <img
+          src={movieDetails.Poster !== "N/A" ? movieDetails.Poster : "/placeholder.jpg"}
+          alt={movieDetails.Title}
+          className="movie-poster"
+        />
+
+        <div className="movie-info">
+          <p><strong>Genre:</strong> {movieDetails.Genre}</p>
+          <p><strong>Director:</strong> {movieDetails.Director}</p>
+          <p><strong>Actors:</strong> {movieDetails.Actors}</p>
+          <p><strong>Plot:</strong> {movieDetails.Plot}</p>
+          <p><strong>IMDb Rating:</strong> {movieDetails.imdbRating}</p>
+        </div>
+      </div>
+
+      {/* Season Selector */}
+      <div className="season-selector">
+        <h2>Select Season</h2>
+        <div className="seasons">
+          {Array.from({ length: parseInt(movieDetails.totalSeasons) }, (_, index) => index + 1).map(season => (
+            <button
+              key={season}
+              onClick={() => handleSeasonChange(season)}
+              className={season === selectedSeason ? 'active' : ''}
+            >
+              Season {season}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Episodes List */}
+      <div className="episodes-list">
+        <h2>Episodes - Season {selectedSeason}</h2>
+        {episodes.length === 0 ? (
+          <p>Loading episodes...</p>
+        ) : (
+          episodes.map((episode) => (
+            <div key={episode.imdbID} className="episode-card">
+              <h3>{episode.Title}</h3>
+              <p>{episode.Released}</p>
+              <p>{episode.Plot}</p>
+              <Link href={`/movie/${id}/episode/${episode.imdbID}`}>
+                View Details
+              </Link>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 };
 
-export default EpisodeDetailsPage;
+export default MovieDetailsPage;
