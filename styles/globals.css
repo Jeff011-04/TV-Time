@@ -139,3 +139,29 @@ p {
 .movie-info strong {
   color: #007BFF;
 }
+.movie-details-container {
+  padding: 20px;
+}
+
+.movie-details {
+  display: flex;
+  gap: 20px;
+}
+
+.movie-poster {
+  width: 200px;
+  height: auto;
+}
+
+.movie-info {
+  max-width: 600px;
+}
+
+.movie-title {
+  font-size: 2rem;
+  margin-bottom: 10px;
+}
+
+.movie-info p {
+  margin: 10px 0;
+}

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { fetchMoviesAndShows, fetchPopularMovies } from "../lib/omdb";
+import Link from "next/link";  // Import Link component from Next.js
 
 interface Movie {
   Title: string;
@@ -9,30 +10,26 @@ interface Movie {
 
 const Home = () => {
   const [query, setQuery] = useState<string>("");
-  const [moviesAndShows, setMoviesAndShows] = useState<Movie[]>([]);  // Initialize as an empty array
-  const [popularMovies, setPopularMovies] = useState<Movie[]>([]);  // Initialize as an empty array
+  const [moviesAndShows, setMoviesAndShows] = useState<Movie[]>([]);
+  const [popularMovies, setPopularMovies] = useState<Movie[]>([]);
 
-  // Fetch popular movies when the component mounts
   useEffect(() => {
     const getPopularMovies = async () => {
       const data = await fetchPopularMovies();
-      setPopularMovies(data || []);  // Ensure an empty array if the response is undefined
+      setPopularMovies(data || []);
     };
-
     getPopularMovies();
   }, []);
 
-  // Fetch movies/shows when the user types in the search input
   useEffect(() => {
     const fetchData = async () => {
       if (query.length > 2) {
         const data = await fetchMoviesAndShows(query);
-        setMoviesAndShows(data || []);  // Ensure an empty array if the response is undefined
+        setMoviesAndShows(data || []);
       } else {
-        setMoviesAndShows([]);  // Reset the search results when the query is empty
+        setMoviesAndShows([]);
       }
     };
-
     fetchData();
   }, [query]);
 
@@ -64,7 +61,11 @@ const Home = () => {
                   alt={movie.Title}
                   className="movie-poster"
                 />
-                <h3 className="movie-title">{movie.Title}</h3>
+                <h3 className="movie-title">
+                  <Link href={`/movie/${movie.imdbID}`}>
+                    {movie.Title}
+                  </Link>
+                </h3>
               </div>
             ))
           )}
@@ -85,7 +86,11 @@ const Home = () => {
                   alt={item.Title}
                   className="movie-poster"
                 />
-                <h3 className="movie-title">{item.Title}</h3>
+                <h3 className="movie-title">
+                  <Link href={`/movie/${item.imdbID}`}>
+                    {item.Title}
+                  </Link>
+                </h3>
               </div>
             ))
           )}
