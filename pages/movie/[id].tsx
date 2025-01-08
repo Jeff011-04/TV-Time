@@ -20,7 +20,7 @@ interface MovieDetails {
   Poster: string;
   imdbRating: string;
   imdbID: string;
-  totalSeasons: string;  // Add totalSeasons to track number of seasons
+  totalSeasons: string;  // Add totalSeasons to track the number of seasons
 }
 
 const MovieDetailsPage = () => {
@@ -122,7 +122,8 @@ const MovieDetailsPage = () => {
               <p>{episode.Released}</p>
               <p>{episode.Plot}</p>
               <Link href={`/movie/${id}/episode/${episode.imdbID}`}>
-                <a>View Details</a>
+                {/* Removed the <a> tag. Link component now automatically handles it */}
+                View Details
               </Link>
             </div>
           ))

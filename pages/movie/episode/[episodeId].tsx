@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { fetchDetailsById } from "../../../lib/omdb";  // Reuse the function to fetch episode details
+import { fetchDetailsById } from "../../../lib/omdb"; // Reuse the function to fetch episode details
 
 // Type definitions for episode details
 interface EpisodeDetails {
@@ -13,27 +13,48 @@ interface EpisodeDetails {
 
 const EpisodeDetailsPage = () => {
   const router = useRouter();
-  const { id, episodeId } = router.query;  // Extract 'id' and 'episodeId' from the URL params
+  const { id, episodeId } = router.query; // Extract 'id' (movie/show) and 'episodeId' (episode) from URL params
   const [episodeDetails, setEpisodeDetails] = useState<EpisodeDetails | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null); // Error state to handle errors
 
   // Fetch episode details when the component mounts or the parameters change
   useEffect(() => {
-    if (!episodeId || !id) return;  // Ensure that 'id' and 'episodeId' are available before making the API call
+    // Only proceed if the router is ready and we have both the 'id' and 'episodeId'
+    if (!router.isReady || !episodeId || !id) {
+      setLoading(false); // Stop loading if the parameters are not ready
+      return;
+    }
 
     const fetchEpisodeDetails = async () => {
-      setLoading(true);
-      const data = await fetchDetailsById(episodeId as string);  // Fetch episode details using 'episodeId'
-      setEpisodeDetails(data);
-      setLoading(false);
+      try {
+        setLoading(true);
+        const data = await fetchDetailsById(episodeId as string); // Ensure 'episodeId' is treated as a string
+        if (data && data.Title) {
+          setEpisodeDetails(data); // Set episode details if valid
+          setError(null); // Reset error if data is fetched successfully
+        } else {
+          setError("Episode details not found.");
+        }
+      } catch (err) {
+        setError("Failed to fetch episode details.");
+      } finally {
+        setLoading(false); // Stop loading after the request completes
+      }
     };
 
+    // Fetch episode details if the required parameters are available
     fetchEpisodeDetails();
-  }, [episodeId, id]);  // Re-run the effect when either 'episodeId' or 'id' changes
+  }, [episodeId, id, router.isReady]); // Re-run the effect when either 'episodeId' or 'id' or router readiness changes
 
   // Show loading state while fetching data
   if (loading) {
     return <p>Loading episode details...</p>;
+  }
+
+  // Show error message if fetching episode fails
+  if (error) {
+    return <p>{error}</p>;
   }
 
   // Handle case where episode details are not found

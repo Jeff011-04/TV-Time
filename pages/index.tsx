@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { fetchMoviesAndShows, fetchPopularMovies } from "../lib/omdb";
-import Link from "next/link";  // Import Link component from Next.js
+import Link from "next/link"; // Import Link component from Next.js
 
 interface Movie {
   Title: string;
@@ -63,7 +63,7 @@ const Home = () => {
                 />
                 <h3 className="movie-title">
                   <Link href={`/movie/${movie.imdbID}`}>
-                    {movie.Title}
+                    {movie.Title} {/* No <a> tag needed here */}
                   </Link>
                 </h3>
               </div>
@@ -88,7 +88,7 @@ const Home = () => {
                 />
                 <h3 className="movie-title">
                   <Link href={`/movie/${item.imdbID}`}>
-                    {item.Title}
+                    {item.Title} {/* No <a> tag needed here */}
                   </Link>
                 </h3>
               </div>
