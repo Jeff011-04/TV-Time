@@ -5,6 +5,7 @@ import Swal from "sweetalert2"; // Assuming you're using SweetAlert2 for error h
 import Link from "next/link"; // Link to navigate to episode details
 
 interface Episode {
+  imdbRating: string;
   Title: string;
   Released: string;
   Plot: string;
@@ -21,8 +22,10 @@ interface MovieDetails {
   Plot: string;
   Poster: string;
   imdbRating: string;
+  imdbVotes: string;
   imdbID: string;
   totalSeasons: string;
+  Type: string;  // Type to check if it's a series or movie
 }
 
 const MovieDetailsPage = () => {
@@ -51,8 +54,8 @@ const MovieDetailsPage = () => {
       setMovieDetails(data);
       setLoading(false);
 
-      if (data?.totalSeasons) {
-        fetchEpisodes(id as string, 1); // Fetch episodes for season 1 by default
+      if (data?.totalSeasons && data.Type === "series") {
+        fetchEpisodes(id as string, 1); // Fetch episodes for season 1 by default if it's a series
       }
     };
 
@@ -100,50 +103,56 @@ const MovieDetailsPage = () => {
           <p><strong>Actors:</strong> {movieDetails.Actors}</p>
           <p><strong>Plot:</strong> {movieDetails.Plot}</p>
           <p><strong>IMDb Rating:</strong> {movieDetails.imdbRating}</p>
+          <p><strong>IMDb Votes:</strong> {movieDetails.imdbVotes}</p>
         </div>
       </div>
 
-      {/* Season Selector */}
-      <div className="season-selector">
-        <h2>Select Season</h2>
-        <div className="seasons">
-          {Array.from({ length: parseInt(movieDetails.totalSeasons) }, (_, index) => index + 1).map(season => (
-            <button
-              key={season}
-              onClick={() => handleSeasonChange(season)}
-              className={season === selectedSeason ? 'active' : ''}
-            >
-              Season {season}
-            </button>
-          ))}
+      {/* Only show Season Selector if it's a series */}
+      {movieDetails.Type === "series" && (
+        <div className="season-selector">
+          <h2>Select Season</h2>
+          <div className="seasons">
+            {Array.from({ length: parseInt(movieDetails.totalSeasons) }, (_, index) => index + 1).map(season => (
+              <button
+                key={season}
+                onClick={() => handleSeasonChange(season)}
+                className={season === selectedSeason ? 'active' : ''}
+              >
+                Season {season}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Episodes List */}
-      <div className="episodes-list">
-        <h2>Episodes - Season {selectedSeason}</h2>
-        {episodes.length === 0 ? (
-          <p>Loading episodes...</p>
-        ) : (
-          episodes.map((episode) => (
-            <div key={episode.imdbID} className="episode-card">
-              <img
-                src={episode.Poster !== "N/A" ? episode.Poster : "/placeholder.jpg"}
-                alt={episode.Title}
-                className="episode-poster"
-              />
-              <div className="episode-info">
-                <h3>{episode.Title}</h3>
-                <p>{episode.Released}</p>
-                <p>{episode.Plot}</p>
-                <Link href={`/movie/${id}/episode/${episode.imdbID}`}>
-                  View Details
-                </Link>
+      {movieDetails.Type === "series" && (
+        <div className="episodes-list">
+          <h2>Episodes - Season {selectedSeason}</h2>
+          {episodes.length === 0 ? (
+            <p>Loading episodes...</p>
+          ) : (
+            episodes.map((episode) => (
+              <div key={episode.imdbID} className="episode-card">
+                <img
+                  src={episode.Poster !== "N/A" ? episode.Poster : "/placeholder.jpg"}
+                  alt={episode.Title}
+                  className="episode-poster"
+                />
+                <div className="episode-info">
+                  <h3>{episode.Title}</h3>
+                  <p>{episode.Released}</p>
+                  <p>{episode.Plot}</p>
+                  <p>{episode.imdbRating}</p>
+                  <Link href={`/movie/${id}/episode/${episode.imdbID}`}>
+                    View Details
+                  </Link>
+                </div>
               </div>
-            </div>
-          ))
-        )}
-      </div>
+            ))
+          )}
+        </div>
+      )}
     </div>
   );
 };
